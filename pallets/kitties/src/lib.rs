@@ -50,9 +50,6 @@ decl_module! {
 		pub fn create(origin) {
 			let sender = ensure_signed(origin)?;
 
-			// TODO: ensure kitty id does not overflow
-			// return Err(Error::<T>::KittiesIdOverflow.into());
-
 			// Generate a random 128bit value
 			let payload = (
 				<pallet_randomness_collective_flip::Module<T> as Randomness<T::Hash>>::random_seed(),
@@ -64,6 +61,13 @@ decl_module! {
 			// Create and store kitty
 			let kitty = Kitty(dna);
 			let kitty_id = Self::next_kitty_id();
+
+			if kitty_id == u32::max_value(){
+				return Err(Error::<T>::KittiesIdOverflow.into());
+			}
+			//Other Way to make implement the Overflow error with IMPLEMENT
+			//let kitty_id = Self::get_next_kitty_id()?;
+
 			Kitties::<T>::insert(&sender, kitty_id, kitty.clone());
 			NextKittyId::put(kitty_id + 1);
 
